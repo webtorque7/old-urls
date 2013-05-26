@@ -1,5 +1,5 @@
 {
-  "name": "webtorque7/silverstripe-old-urls",
+  "name": "webtorque7/old-urls",
   "type": "silverstripe-module",
 	"description": "For managing redirecting of old urls",
 	"keywords": ["silverstripe", "old urls"],
