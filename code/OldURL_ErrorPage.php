@@ -9,8 +9,8 @@
 
 class OldURL_ErrorPage extends ErrorPage
 {
-        public static $singular_name = 'Old URL Error Page';
-        public static $plural_name = 'Old URL Error Pages';
+        private static $singular_name = 'Old URL Error Page';
+        private static $plural_name = 'Old URL Error Pages';
 
         public function requireDefaultRecords() {
                 parent::requireDefaultRecords();
