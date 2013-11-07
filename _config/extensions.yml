@@ -1,3 +1,6 @@
 SiteTree:
   extensions:
     - OldURL_Extension
+Injector:
+  ModelAsController:
+    class: OldURL_ModelAsController
