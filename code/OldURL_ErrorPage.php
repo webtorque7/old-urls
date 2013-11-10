@@ -39,7 +39,7 @@ class OldURL_ErrorPage_Controller extends ErrorPage_Controller
                         $oldPage = OldURLRedirect::get()->filter('OldURL', $url)->first();
 
                         if ($oldPage) {
-                                $this->redirect($oldPage->Page()->Link());
+                                return $oldPage->redirection($this);
                         }
                 }
         }

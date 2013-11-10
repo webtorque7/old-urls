@@ -10,6 +10,8 @@ class OldURLRedirect extends DataObject {
 
         private static $db = array(
                 'OldURL' => 'Varchar(255)',
+                'Anchor' => 'Varchar(50)',
+                'Action' => 'Varchar(100)'
         );
 
         private static $summary_fields = array(
@@ -25,6 +27,11 @@ class OldURLRedirect extends DataObject {
                 $fields = parent::getCMSFields();
 
                 $fields->removeByName('PageID');
+
+                $fields->addFieldsToTab('Root.Main', array(
+                        TextField::create('Action')->setDescription('Action part of the url your are redirecting to e.g. /checkout/options (options is the Action)'),
+                        TextField::create('Anchor')->setDescription('Anchor on the page to redirect to e.g. #bottom')
+                ));
 
                 return $fields;
         }
@@ -44,4 +51,14 @@ class OldURLRedirect extends DataObject {
 	public function canDelete($member = null) {
 		return true;
 	}
+
+
+        /**
+         * @param Controller $controller
+         */
+        public function redirection(Controller $controller) {
+                $redirect = Controller::join_links($this->Page()->Link(), $this->Action, $this->Anchor ? '#' . $this->Anchor : '' );
+
+                return $controller->redirect($redirect);
+        }
 }
