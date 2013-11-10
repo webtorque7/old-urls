@@ -30,7 +30,7 @@ class OldURLRedirect extends DataObject {
 
                 $fields->addFieldsToTab('Root.Main', array(
                         TextField::create('Action')->setDescription('Action part of the url your are redirecting to e.g. /checkout/options (options is the Action)'),
-                        TextField::create('Anchor')->setDescription('Anchor on the page to redirect to e.g. #bottom')
+                        TextField::create('Anchor')->setDescription('Anchor on the page to redirect to e.g. for anchor #bottom enter bottom (don\'t enter the hash)')
                 ));
 
                 return $fields;
