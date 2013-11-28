@@ -5,21 +5,21 @@
 
 class OldURLRedirect extends DataObject {
 
-        private static $singular_name = 'URL Redirect';
-        private static $plural_name = 'URL Redirects';
+        public static $singular_name = 'URL Redirect';
+        public static $plural_name = 'URL Redirects';
 
-        private static $db = array(
+        public static $db = array(
                 'OldURL' => 'Varchar(255)',
                 'Anchor' => 'Varchar(50)',
                 'Action' => 'Varchar(100)'
         );
 
-        private static $summary_fields = array(
+        public static $summary_fields = array(
                 'OldURL' => 'Old URL',
                 'Page.Link' => 'New URL'
         );
 
-        private static $has_one = array(
+        public static $has_one = array(
                 'Page' => 'SiteTree'
         );
 

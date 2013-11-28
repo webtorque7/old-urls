@@ -9,7 +9,7 @@
 
 class OldURL_Extension extends DataExtension {
 
-        private static $has_many = array(
+        public static $has_many = array(
                 'OldURLRedirects' => 'OldURLRedirect'
         );
 
