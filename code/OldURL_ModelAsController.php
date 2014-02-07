@@ -6,24 +6,107 @@
 class OldURL_ModelAsController extends ModelAsController
 {
 
-        /**
-         * Don't pass errorCode if response is a redirect
-         *
-         * @param int $errorCode
-         * @param string $errorMessage Plaintext error message
-         * @uses SS_HTTPResponse_Exception
-         */
-        public function httpError($errorCode, $errorMessage = null) {
-                // Call a handler method such as onBeforeHTTPError404
-                $this->extend('onBeforeHTTPError' . $errorCode, $this->request);
+//        /**
+//         * Don't pass errorCode if response is a redirect
+//         *
+//         * @param int $errorCode
+//         * @param string $errorMessage Plaintext error message
+//         * @uses SS_HTTPResponse_Exception
+//         */
+//        public function httpError($errorCode, $errorMessage = null) {
+//		Debug::dump($errorCode);exit();
+//                // Call a handler method such as onBeforeHTTPError404
+//                $this->extend('onBeforeHTTPError' . $errorCode, $this->request);
+//
+//                // Call a handler method such as onBeforeHTTPError, passing 404 as the first arg
+//                $this->extend('onBeforeHTTPError', $errorCode, $this->request);
+//
+//                if ($errorMessage instanceof SS_HTTPResponse && $errorMessage->getHeader('Location')) {
+//                        throw new SS_HTTPResponse_Exception($errorMessage, $errorMessage->getStatusCode());
+//                }
+//                // Throw a new exception
+//                throw new SS_HTTPResponse_Exception($errorMessage, $errorCode);
+//        }
 
-                // Call a handler method such as onBeforeHTTPError, passing 404 as the first arg
-                $this->extend('onBeforeHTTPError', $errorCode, $this->request);
+	/**
+	 * Get the appropriate {@link ContentController} for handling a {@link SiteTree} object, link it to the object and
+	 * return it.
+	 *
+	 * @param SiteTree $sitetree
+	 * @param string $action
+	 * @return ContentController
+	 */
+	static public function controller_for(SiteTree $sitetree, $action = null) {
+		if($sitetree->class == 'SiteTree') $controller = "ContentController";
+		else $controller = "{$sitetree->class}_Controller";
 
-                if ($errorMessage instanceof SS_HTTPResponse && $errorMessage->getHeader('Location')) {
-                        throw new SS_HTTPResponse_Exception($errorMessage, $errorMessage->getStatusCode());
-                }
-                // Throw a new exception
-                throw new SS_HTTPResponse_Exception($errorMessage, $errorCode);
-        }
+		if($action && class_exists($controller . '_' . ucfirst($action))) {
+			$controller = $controller . '_' . ucfirst($action);
+		}
+
+		return class_exists($controller) ? Injector::inst()->create($controller, $sitetree) : $sitetree;
+	}
+
+	/**
+	 * @uses ModelAsController::getNestedController()
+	 * @return SS_HTTPResponse
+	 */
+	public function handleRequest(SS_HTTPRequest $request, DataModel $model) {
+		$this->request = $request;
+		$this->setDataModel($model);
+
+		$this->pushCurrent();
+
+		// Create a response just in case init() decides to redirect
+		$this->response = new SS_HTTPResponse();
+
+		$this->init();
+
+		// If we had a redirection or something, halt processing.
+		if($this->response->isFinished()) {
+			$this->popCurrent();
+			return $this->response;
+		}
+
+		// If the database has not yet been created, redirect to the build page.
+		if(!DB::isActive() || !ClassInfo::hasTable('SiteTree')) {
+			$this->response->redirect(Director::absoluteBaseURL() . 'dev/build?returnURL=' . (isset($_GET['url']) ? urlencode($_GET['url']) : null));
+			$this->popCurrent();
+
+			return $this->response;
+		}
+
+		try {
+
+			$result = $this->getNestedController();
+
+			if($result instanceof RequestHandler) {
+				$result = $result->handleRequest($this->request, $model);
+			} else if(!($result instanceof SS_HTTPResponse)) {
+				user_error("ModelAsController::getNestedController() returned bad object type '" .
+					get_class($result)."'", E_USER_WARNING);
+			}
+		} catch(SS_HTTPResponse_Exception $responseException) {
+
+			$oldURLRedirectOBJ = OldURLRedirect::get_from_url($request->getURL());
+
+			$redirectPage = $oldURLRedirectOBJ->Page();
+			$dontRedirect =  $oldURLRedirectOBJ->DontRedirect;
+
+			if ($dontRedirect) {
+				$result = self::controller_for($redirectPage);
+				Debug::dump($this->request);
+				$request = new SS_HTTPRequest($this->request->httpMethod(), $result->Link());
+				Debug::dump($request);exit;
+				$result = $result->handleRequest($request, $model);
+			}
+			else {
+				$result = $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
+			}
+
+		}
+
+		$this->popCurrent();
+		return $result;
+	}
 } 

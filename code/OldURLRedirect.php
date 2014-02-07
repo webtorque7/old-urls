@@ -11,12 +11,14 @@ class OldURLRedirect extends DataObject {
         private static $db = array(
                 'OldURL' => 'Varchar(255)',
                 'Anchor' => 'Varchar(50)',
-                'Action' => 'Varchar(100)'
+                'Action' => 'Varchar(100)',
+		'DontRedirect' => 'Boolean'
         );
 
         private static $summary_fields = array(
                 'OldURL' => 'Old URL',
-                'Page.Link' => 'New URL'
+                'Page.Link' => 'New URL',
+		'DontRedirect' => 'Dont Redirect'
         );
 
         private static $has_one = array(
@@ -61,4 +63,19 @@ class OldURLRedirect extends DataObject {
 
                 return $controller->redirect($redirect);
         }
+
+	public static function get_from_url($url) {
+		$url = $url ? $url : (!empty($_GET['url']) ? $_GET['url'] : '');
+
+		if ($url) {
+			if (strpos($url, '/') !== 0)
+				$url = '/' . $url;
+
+			$oldPage = OldURLRedirect::get()->filter('OldURL', $url)->first();
+
+			if ($oldPage) {
+				return $oldPage;
+			}
+		}
+	}
 }
