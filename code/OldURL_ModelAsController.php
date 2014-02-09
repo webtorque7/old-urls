@@ -36,11 +36,12 @@ class OldURL_ModelAsController extends ModelAsController
 	 * @param string $action
 	 * @return ContentController
 	 */
-	static public function controller_for(SiteTree $sitetree, $action = null) {
-		if($sitetree->class == 'SiteTree') $controller = "ContentController";
+	static public function controller_for(SiteTree $sitetree, $action = null)
+	{
+		if ($sitetree->class == 'SiteTree') $controller = "ContentController";
 		else $controller = "{$sitetree->class}_Controller";
 
-		if($action && class_exists($controller . '_' . ucfirst($action))) {
+		if ($action && class_exists($controller . '_' . ucfirst($action))) {
 			$controller = $controller . '_' . ucfirst($action);
 		}
 
@@ -51,7 +52,8 @@ class OldURL_ModelAsController extends ModelAsController
 	 * @uses ModelAsController::getNestedController()
 	 * @return SS_HTTPResponse
 	 */
-	public function handleRequest(SS_HTTPRequest $request, DataModel $model) {
+	public function handleRequest(SS_HTTPRequest $request, DataModel $model)
+	{
 		$this->request = $request;
 		$this->setDataModel($model);
 
@@ -63,13 +65,13 @@ class OldURL_ModelAsController extends ModelAsController
 		$this->init();
 
 		// If we had a redirection or something, halt processing.
-		if($this->response->isFinished()) {
+		if ($this->response->isFinished()) {
 			$this->popCurrent();
 			return $this->response;
 		}
 
 		// If the database has not yet been created, redirect to the build page.
-		if(!DB::isActive() || !ClassInfo::hasTable('SiteTree')) {
+		if (!DB::isActive() || !ClassInfo::hasTable('SiteTree')) {
 			$this->response->redirect(Director::absoluteBaseURL() . 'dev/build?returnURL=' . (isset($_GET['url']) ? urlencode($_GET['url']) : null));
 			$this->popCurrent();
 
@@ -80,18 +82,18 @@ class OldURL_ModelAsController extends ModelAsController
 
 			$result = $this->getNestedController();
 
-			if($result instanceof RequestHandler) {
+			if ($result instanceof RequestHandler) {
 				$result = $result->handleRequest($this->request, $model);
-			} else if(!($result instanceof SS_HTTPResponse)) {
+			} else if (!($result instanceof SS_HTTPResponse)) {
 				user_error("ModelAsController::getNestedController() returned bad object type '" .
-					get_class($result)."'", E_USER_WARNING);
+					get_class($result) . "'", E_USER_WARNING);
 			}
-		} catch(SS_HTTPResponse_Exception $responseException) {
+		} catch (SS_HTTPResponse_Exception $responseException) {
 
 			$url = $request->getURL();
 			$action = '';
 
-			$oldURLRedirectOBJ = OldURLRedirect::get_from_url($url);
+			$oldURLRedirectOBJ = OldURLRedirect::get_from_url(str_replace(' ', '%20', $url));
 
 			//if not found, try removing action
 			if (!$oldURLRedirectOBJ) {
@@ -100,15 +102,18 @@ class OldURL_ModelAsController extends ModelAsController
 				$action = substr($url, $slash + 1);
 			}
 
-			$redirectPage = $oldURLRedirectOBJ->Page();
-			$dontRedirect =  $oldURLRedirectOBJ->DontRedirect;
+			if (!$oldURLRedirectOBJ) {
+				$redirectPage = $oldURLRedirectOBJ->Page();
+				$dontRedirect = $oldURLRedirectOBJ->DontRedirect;
 
-			if ($dontRedirect) {
-				//@todo handle actions (forms etc)
-				return Director::direct(Controller::join_links($redirectPage->Link(), $action), new DataModel());
-			}
-			else {
-				$result = $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
+				if ($dontRedirect) {
+					global $oldURLRedirected;
+					$oldURLRedirected = true;
+					//@todo handle actions (forms etc)
+					return Director::direct(Controller::join_links($redirectPage->Link(), $action), new DataModel());
+				} else {
+					$result = $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
+				}
 			}
 
 		}

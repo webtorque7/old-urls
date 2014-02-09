@@ -65,6 +65,7 @@ class OldURLRedirect extends DataObject {
         }
 
 	public static function get_from_url($url) {
+		Debug::dump($url);
 		$url = $url ? $url : (!empty($_GET['url']) ? $_GET['url'] : '');
 
 		if ($url) {
