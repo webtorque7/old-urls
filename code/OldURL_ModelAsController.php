@@ -102,11 +102,12 @@ class OldURL_ModelAsController extends ModelAsController
 				$action = substr($url, $slash + 1);
 			}
 
-			if (!$oldURLRedirectOBJ) {
+			if ($oldURLRedirectOBJ) {
 				$redirectPage = $oldURLRedirectOBJ->Page();
 				$dontRedirect = $oldURLRedirectOBJ->DontRedirect;
 
 				if ($dontRedirect) {
+
 					global $oldURLRedirected;
 					$oldURLRedirected = true;
 					//@todo handle actions (forms etc)
@@ -114,6 +115,8 @@ class OldURL_ModelAsController extends ModelAsController
 				} else {
 					$result = $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
 				}
+			} else {
+				$result = null;
 			}
 
 		}
