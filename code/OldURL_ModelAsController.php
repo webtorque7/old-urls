@@ -88,17 +88,24 @@ class OldURL_ModelAsController extends ModelAsController
 			}
 		} catch(SS_HTTPResponse_Exception $responseException) {
 
-			$oldURLRedirectOBJ = OldURLRedirect::get_from_url($request->getURL());
+			$url = $request->getURL();
+			$action = '';
+
+			$oldURLRedirectOBJ = OldURLRedirect::get_from_url($url);
+
+			//if not found, try removing action
+			if (!$oldURLRedirectOBJ) {
+				$slash = strrpos('/', $url);
+				$url = substr($url, 0, $slash);
+				$action = substr($url, $slash + 1);
+			}
 
 			$redirectPage = $oldURLRedirectOBJ->Page();
 			$dontRedirect =  $oldURLRedirectOBJ->DontRedirect;
 
 			if ($dontRedirect) {
-				$result = self::controller_for($redirectPage);
-				Debug::dump($this->request);
-				$request = new SS_HTTPRequest($this->request->httpMethod(), $result->Link());
-				Debug::dump($request);exit;
-				$result = $result->handleRequest($request, $model);
+				//@todo handle actions (forms etc)
+				return Director::direct(Controller::join_links($redirectPage->Link(), $action), new DataModel());
 			}
 			else {
 				$result = $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
