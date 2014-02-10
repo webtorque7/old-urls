@@ -28,7 +28,7 @@ class OldURLRedirect extends DataObject {
         public function getCMSFields() {
                 $fields = parent::getCMSFields();
 
-                $fields->removeByName('PageID');
+                //$fields->removeByName('PageID');
 
                 $fields->addFieldsToTab('Root.Main', array(
                         TextField::create('Action')->setDescription('Action part of the url your are redirecting to e.g. /checkout/options (options is the Action)'),
