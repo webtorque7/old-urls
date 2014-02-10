@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Model admin for managing old urls
+ */
 class OldURLAdmin extends ModelAdmin {
 	private static $managed_models = array('OldURLRedirect');
 
