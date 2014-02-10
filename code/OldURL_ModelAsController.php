@@ -80,6 +80,10 @@ class OldURL_ModelAsController extends ModelAsController
 
 		try {
 
+			if ($return = $this->handleOldURL($request)) {
+				return $return;
+			}
+
 			$result = $this->getNestedController();
 
 			if ($result instanceof RequestHandler) {
@@ -89,39 +93,40 @@ class OldURL_ModelAsController extends ModelAsController
 					get_class($result) . "'", E_USER_WARNING);
 			}
 		} catch (SS_HTTPResponse_Exception $responseException) {
-
-			$url = $request->getURL();
-			$action = '';
-
-			$oldURLRedirectOBJ = OldURLRedirect::get_from_url(str_replace(' ', '%20', $url));
-
-			//if not found, try removing action
-			if (!$oldURLRedirectOBJ) {
-				$slash = strrpos('/', $url);
-				$url = substr($url, 0, $slash);
-				$action = substr($url, $slash + 1);
-			}
-
-			if ($oldURLRedirectOBJ) {
-				$redirectPage = $oldURLRedirectOBJ->Page();
-				$dontRedirect = $oldURLRedirectOBJ->DontRedirect;
-
-				if ($dontRedirect) {
-
-					global $oldURLRedirected;
-					$oldURLRedirected = true;
-					//@todo handle actions (forms etc)
-					return Director::direct(Controller::join_links($redirectPage->Link(), $action), new DataModel());
-				} else {
-					$result = $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
-				}
-			} else {
-				$result = null;
-			}
-
+			$result = $responseException->getResponse();
 		}
 
 		$this->popCurrent();
 		return $result;
+	}
+
+	public function handleOldURL($request) {
+		$url = $request->getURL();
+		$action = '';
+
+		$oldURLRedirectOBJ = OldURLRedirect::get_from_url(str_replace(' ', '%20', $url));
+
+		//if not found, try removing action
+		if (!$oldURLRedirectOBJ) {
+			$slash = strrpos('/', $url);
+			$url = substr($url, 0, $slash);
+			$action = substr($url, $slash + 1);
+		}
+
+		if ($oldURLRedirectOBJ) {
+			$redirectPage = $oldURLRedirectOBJ->Page();
+			$dontRedirect = $oldURLRedirectOBJ->DontRedirect;
+
+			if ($dontRedirect) {
+				global $oldURLRedirected;
+				$oldURLRedirected = true;
+				//@todo handle actions (forms etc)
+				return Director::direct(Controller::join_links($redirectPage->Link(), $action), new DataModel());
+			} else {
+				$result = $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
+			}
+		}
+
+		return false;
 	}
 } 
