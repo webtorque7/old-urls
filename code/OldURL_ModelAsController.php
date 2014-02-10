@@ -80,8 +80,14 @@ class OldURL_ModelAsController extends ModelAsController
 
 		try {
 
-			if ($return = $this->handleOldURL($request)) {
-				return $return;
+			$oldURL = $this->handleOldURL($request);
+
+
+			if ($oldURL instanceof SS_HTTPResponse) {
+				return $oldURL;
+			}
+			else if ($oldURL === true) {
+				return;
 			}
 
 			$result = $this->getNestedController();
@@ -117,13 +123,16 @@ class OldURL_ModelAsController extends ModelAsController
 			$redirectPage = $oldURLRedirectOBJ->Page();
 			$dontRedirect = $oldURLRedirectOBJ->DontRedirect;
 
+			global $oldURLRedirected;
+			$oldURLRedirected = true;
+
 			if ($dontRedirect) {
-				global $oldURLRedirected;
-				$oldURLRedirected = true;
+
 				//@todo handle actions (forms etc)
-				return Director::direct(Controller::join_links($redirectPage->Link(), $action), new DataModel());
+				Director::direct(Controller::join_links($redirectPage->Link(), $action), new DataModel());
+				return true;
 			} else {
-				$result = $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
+				return $oldURLRedirectOBJ->redirection(self::controller_for($redirectPage));
 			}
 		}
 
