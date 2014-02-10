@@ -127,7 +127,6 @@ class OldURL_ModelAsController extends ModelAsController
 			$oldURLRedirected = true;
 
 			if ($dontRedirect) {
-
 				//@todo handle actions (forms etc)
 				Director::direct(Controller::join_links($redirectPage->Link(), $action), new DataModel());
 				return true;

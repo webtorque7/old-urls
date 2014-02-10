@@ -73,7 +73,7 @@ class OldURLRedirect extends DataObject {
 
 			$oldPage = OldURLRedirect::get()->filter('OldURL', $url)->exclude('PageID', 0)->first();
 
-			if ($oldPage) {
+			if ($oldPage && $url == $oldPage->OldURL) {
 				return $oldPage;
 			}
 		}
