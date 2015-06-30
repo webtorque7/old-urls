@@ -7,13 +7,21 @@
  * To change this template use File | Settings | File Templates.
  */
 
-class OldURL_Extension extends DataExtension {
+class OldURL_Extension extends DataExtension
+{
 
-        private static $has_many = array(
-                'OldURLRedirects' => 'OldURLRedirect'
+    private static $has_many = array(
+        'OldURLRedirects' => 'OldURLRedirect'
+    );
+
+    public function updateSettingsFields($fields)
+    {
+        $config = GridFieldConfig_RelationEditor::create();
+        $config->removeComponentsByType('GridFieldDeleteAction');
+        $config->addComponent(new GridFieldDeleteAction);
+        $fields->addFieldToTab(
+            'Root.OldUrls',
+            new GridField('OldURLRedirects', 'Old URLs', $this->owner->OldURLRedirects(), $config)
         );
-
-        public function updateSettingsFields($fields) {
-                $fields->addFieldToTab('Root.OldUrls', new GridField('OldURLRedirects', 'Old URLs', $this->owner->OldURLRedirects(), GridFieldConfig_RelationEditor::create()));
-        }
+    }
 }

@@ -58,10 +58,8 @@ class OldURLRedirect extends DataObject {
         /**
          * @param Controller $controller
          */
-        public function redirection(Controller $controller) {
-                $redirect = Controller::join_links($this->Page()->Link(), $this->Action, $this->Anchor ? '#' . $this->Anchor : '' );
-
-                return $controller->redirect($redirect);
+        public function getRedirectionLink() {
+                return Controller::join_links($this->Page()->Link(), $this->Action, $this->Anchor ? '#' . $this->Anchor : '' );
         }
 
 	public static function get_from_url($url) {
