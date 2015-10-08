@@ -10,15 +10,17 @@ class OldURLRedirect extends DataObject
 	private static $plural_name = 'URL Redirects';
 
 	private static $db = array(
+		'RedirectType' => 'Enum("Internal,Custom", "Internal")',
 		'OldURL' => 'Varchar(255)',
 		'Anchor' => 'Varchar(50)',
 		'Action' => 'Varchar(100)',
-		'DontRedirect' => 'Boolean'
+		'DontRedirect' => 'Boolean',
+		'RedirectTo' => 'Varchar(255)'
 	);
 
 	private static $summary_fields = array(
 		'OldURL' => 'Old URL',
-		'Page.Link' => 'New URL',
+		'RedirectionLink' => 'New URL',
 		'DontRedirect' => 'Dont Redirect'
 	);
 
@@ -27,21 +29,44 @@ class OldURLRedirect extends DataObject
 	);
 
 	public function getCMSFields() {
-		$fields = parent::getCMSFields();
+		$fields = FieldList::create(
+			TabSet::create(
+				"Root",
+				Tab::create(
+					"Main",
+					TextField::create('OldURL', 'URL to redirect')->setDescription(
+						'Don\'t include domain, e.g. /old/link/'
+					),
+					DropdownField::create(
+						'RedirectType',
+						'Redirect Type',
+						$this->dbObject('RedirectType')->enumValues()
+					),
+					CompositeField::create(
+						array(
+							HeaderField::create('InternalHeader', 'Internal Redirect', 3),
+							TreeDropdownField::create('PageID', 'Page', 'SiteTree'),
+							TextField::create('Action')->setDescription(
+								'Action part of the url your are redirecting to e.g. /checkout/options (options is the Action)'
+							),
+						//	CheckboxField::create('DontRedirect', 'Don\'t redirect (load on old page url)')
+						)
+					)->addExtraClass('internal-fields'),
+					CompositeField::create(
+						array(
+							HeaderField::create('CustomHeader', 'Custom Redirect', 3),
+							TextField::create('RedirectTo', 'Redirect To')
+						)
+					)->addExtraClass('custom-fields'),
+					TextField::create('Anchor')->setDescription(
+						'Anchor on the page to redirect to e.g. for anchor #bottom enter bottom (don\'t enter the hash)'
+					)
 
-		//$fields->removeByName('PageID');
-
-		$fields->addFieldsToTab(
-			'Root.Main',
-			array(
-				TextField::create('Action')->setDescription(
-					'Action part of the url your are redirecting to e.g. /checkout/options (options is the Action)'
-				),
-				TextField::create('Anchor')->setDescription(
-					'Anchor on the page to redirect to e.g. for anchor #bottom enter bottom (don\'t enter the hash)'
 				)
 			)
 		);
+
+		Requirements::javascript(OLD_URLS_DIR . '/javascript/OldURLs.js');
 
 		return $fields;
 	}
@@ -69,7 +94,17 @@ class OldURLRedirect extends DataObject
 	 * @param Controller $controller
 	 */
 	public function getRedirectionLink() {
-		return Controller::join_links($this->Page()->Link(), $this->Action, $this->Anchor ? '#' . $this->Anchor : '');
+		$link = $this->RedirectType === 'Custom' ? $this->RedirectTo : $this->getInternalLink();
+
+		if ($this->Anchor) {
+			$link .= '#' . $this->Anchor;
+		}
+
+		return $link;
+	}
+
+	public function getInternalLink() {
+		return Controller::join_links($this->Page()->Link(), $this->Action);
 	}
 
 	/**
@@ -86,7 +121,15 @@ class OldURLRedirect extends DataObject
 				$url = '/' . $url;
 			}
 
-			$oldPage = OldURLRedirect::get()->filter('OldURL', $url)->exclude('PageID', 0)->first();
+			$SQL_url = Convert::raw2sql($url);
+			$filter = <<<SQL
+("OldURL" = '{$SQL_url}' AND "RedirectType" = 'Custom')
+OR
+("OldURL" = '{$SQL_url}' AND "RedirectType" = 'Internal' AND "PageID" <> 0)
+SQL;
+
+
+			$oldPage = OldURLRedirect::get()->where($filter)->first();
 
 			if ($oldPage && $url == strtolower($oldPage->OldURL)) {
 				return $oldPage;
