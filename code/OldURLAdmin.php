@@ -8,4 +8,6 @@ class OldURLAdmin extends ModelAdmin {
 	private static $menu_title = 'Old URLs';
 
 	private static $url_segment = 'old-urls';
+
+	private static $model_importers = array('OldURLRedirect' => 'OldURLCsvBulkLoader');
 } 

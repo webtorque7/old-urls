@@ -14,7 +14,6 @@ class OldURLRedirect extends DataObject
 		'OldURL' => 'Varchar(255)',
 		'Anchor' => 'Varchar(50)',
 		'Action' => 'Varchar(100)',
-		'DontRedirect' => 'Boolean',
 		'RedirectTo' => 'Varchar(255)'
 	);
 
@@ -49,7 +48,6 @@ class OldURLRedirect extends DataObject
 							TextField::create('Action')->setDescription(
 								'Action part of the url your are redirecting to e.g. /checkout/options (options is the Action)'
 							),
-						//	CheckboxField::create('DontRedirect', 'Don\'t redirect (load on old page url)')
 						)
 					)->addExtraClass('internal-fields'),
 					CompositeField::create(
