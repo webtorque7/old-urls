@@ -14,13 +14,18 @@ class OldURLRedirect extends DataObject
 		'OldURL' => 'Varchar(255)',
 		'Anchor' => 'Varchar(50)',
 		'Action' => 'Varchar(100)',
-		'RedirectTo' => 'Varchar(255)'
+		'RedirectTo' => 'Varchar(255)',
+		'RedirectCode' => 'Int'
 	);
 
 	private static $summary_fields = array(
 		'OldURL' => 'Old URL',
 		'RedirectionLink' => 'New URL',
 		'DontRedirect' => 'Dont Redirect'
+	);
+
+	private static $defaults = array(
+		'RedirectCode' => 301
 	);
 
 	private static $has_one = array(
@@ -85,7 +90,6 @@ class OldURLRedirect extends DataObject
 		return true;
 	}
 
-
 	/**
 	 * Get the link to redirect to
 	 *
@@ -99,6 +103,10 @@ class OldURLRedirect extends DataObject
 		}
 
 		return $link;
+	}
+
+	public function getRedirectCode() {
+		return ($code = $this->getField('RedirectCode')) ? $code : 301;
 	}
 
 	public function getInternalLink() {

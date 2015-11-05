@@ -21,7 +21,7 @@ class RedirectHandler extends Extension
         if($oldPage) {
             $response = new SS_HTTPResponse();
             $dest = $oldPage->getRedirectionLink();
-            $response->redirect(Director::absoluteURL($dest), 301);
+            $response->redirect(Director::absoluteURL($dest), $oldPage->getRedirectCode());
             throw new SS_HTTPResponse_Exception($response);
         }
     }
