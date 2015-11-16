@@ -41,6 +41,7 @@ class OldURLRedirect extends DataObject
 					TextField::create('OldURL', 'URL to redirect')->setDescription(
 						'Don\'t include domain, e.g. /old/link/'
 					),
+					NumericField::create('RedirectCode', 'Redirect Code'),
 					DropdownField::create(
 						'RedirectType',
 						'Redirect Type',
