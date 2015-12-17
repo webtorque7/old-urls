@@ -13,12 +13,13 @@ class RedirectHandler extends Extension
      * @param SS_HTTPRequest $request
      * @throws SS_HTTPResponse_Exception
      */
-    public function onBeforeHTTPError404($request) {
+    public function onBeforeHTTPError404($request)
+    {
         $url = strtolower($this->getUrl($request));
         $oldPage = OldURLRedirect::get_from_url($url);
 
         // If there's a match, direct!
-        if($oldPage) {
+        if ($oldPage) {
             $response = new SS_HTTPResponse();
             $dest = $oldPage->getRedirectionLink();
             $response->redirect(Director::absoluteURL($dest), $oldPage->getRedirectCode());
@@ -36,12 +37,10 @@ class RedirectHandler extends Extension
     {
         if (!empty($_SERVER['REQUEST_URI'])) {
             return $_SERVER['REQUEST_URI'];
-        }
-        else if (!empty($_GET['url'])) {
+        } elseif (!empty($_GET['url'])) {
             return $_GET['url'];
-        }
-        else {
+        } else {
             return $request->getURL();
         }
     }
-} 
+}
